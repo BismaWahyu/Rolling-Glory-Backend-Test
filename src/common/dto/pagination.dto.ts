@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsInt, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 export type SortOrder = 'ASC' | 'DESC';
 export type GiftSortBy = 'newest' | 'rating';
@@ -25,4 +25,16 @@ export class PaginationQueryDto {
   @IsOptional()
   @IsIn(['ASC', 'DESC'])
   order?: SortOrder = 'DESC';
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  minRating?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  @IsBoolean()
+  inStock?: boolean;
 }

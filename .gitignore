@@ -18,7 +18,9 @@ bun.lock
 # Project-local docs & test brief (not shipped)
 Rolling Glory Backend Web Developer Test Update.pdf
 Rolling Glory Test/
-docs/
+
+# Claude Code
+.claude/
 
 # Compiled Java class files
 *.class

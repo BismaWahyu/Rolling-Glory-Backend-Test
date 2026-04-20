@@ -23,6 +23,7 @@ import { GiftsService } from './gifts.service';
 import { CreateGiftDto } from './dto/create-gift.dto';
 import { UpdateGiftDto } from './dto/update-gift.dto';
 import { RedeemGiftDto } from './dto/redeem-gift.dto';
+import { BulkRedeemDto } from './dto/bulk-redeem.dto';
 import { RateGiftDto } from './dto/rate-gift.dto';
 
 @Controller('gifts')
@@ -41,6 +42,23 @@ export class GiftsController {
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.giftsService.findOne(id);
+  }
+
+  @Public()
+  @Get(':id/ratings')
+  listRatings(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const p = page ? Math.max(1, parseInt(page, 10) || 1) : 1;
+    const l = limit ? Math.min(100, Math.max(1, parseInt(limit, 10) || 10)) : 10;
+    return this.giftsService.listRatings(id, p, l);
+  }
+
+  @Post('redeem')
+  bulkRedeem(@Body() dto: BulkRedeemDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.giftsService.bulkRedeem(user.id, dto);
   }
 
   @Roles(Role.ADMIN)

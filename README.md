@@ -57,13 +57,15 @@ src/
 | Method | Path | Role | Description |
 | --- | --- | --- | --- |
 | POST | `/api/login` | public | Login, return JWT access token |
-| GET | `/api/gifts` | public | List gift + pagination + sorting + stars |
+| GET | `/api/gifts` | public | List gift + pagination + sorting + filter + stars |
 | GET | `/api/gifts/:id` | public | Detail gift + stars |
+| GET | `/api/gifts/:id/ratings` | public | List review/rating per gift (paginated) |
 | POST | `/api/gifts` | admin | Create gift |
 | PUT | `/api/gifts/:id` | admin | Full replace gift |
 | PATCH | `/api/gifts/:id` | admin | Partial update gift |
 | DELETE | `/api/gifts/:id` | admin | Delete gift |
-| POST | `/api/gifts/:id/redeem` | authenticated | Redeem gift (cek stock & points) |
+| POST | `/api/gifts/:id/redeem` | authenticated | Redeem 1 gift (cek stock & points) |
+| POST | `/api/gifts/redeem` | authenticated | Bulk redeem — multiple gifts dalam 1 request |
 | POST | `/api/gifts/:id/rating` | authenticated | Rate gift yang sudah di-redeem |
 | CRUD | `/api/users[/:id]` | admin | CRUD user (bonus) |
 
@@ -71,6 +73,17 @@ src/
 - `page` (default 1), `limit` (default 10, max 100)
 - `sortBy=newest|rating` (default `newest`)
 - `order=ASC|DESC` (default `DESC`)
+- `minRating=0..5` — filter rating minimum (contoh: `minRating=4` untuk "Rating 4 ke atas")
+- `inStock=true|false` — filter stock tersedia (`gift.stock > 0`)
+
+### Bulk redeem payload `POST /api/gifts/redeem`
+```json
+{ "items": [
+  { "giftId": "uuid-1", "quantity": 2 },
+  { "giftId": "uuid-2", "quantity": 1 }
+]}
+```
+Satu transaction atomic — jika salah satu gagal (stock tidak cukup, poin kurang), semua di-rollback.
 
 ### Perhitungan bintang (stars)
 Rating rata-rata dibulatkan ke kelipatan 0.5 terdekat.
