@@ -6,6 +6,19 @@
 # Node artifact files
 node_modules/
 dist/
+coverage/
+.env
+*.local
+package-lock.json
+bun.lock
+
+# Nest
+.tsbuildinfo
+
+# Project-local docs & test brief (not shipped)
+Rolling Glory Backend Web Developer Test Update.pdf
+Rolling Glory Test/
+docs/
 
 # Compiled Java class files
 *.class
@@ -47,4 +60,3 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-
