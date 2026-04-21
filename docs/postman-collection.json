@@ -1,0 +1,443 @@
+{
+    "info": {
+        "_postman_id": "b1a2c3d4-e5f6-7890-abcd-ef1234567890",
+        "name": "RGB Backend Test",
+        "description": "Rolling Glory Backend Web Developer Test — Gift Redemption REST API.\n\n**Setup:**\n1. Set env variable `baseUrl` (default: `http://localhost:3000/api`).\n2. Run `Auth > Login (Admin)` — `accessToken` otomatis disimpan di collection variable.\n3. Endpoint lain akan otomatis pakai Bearer token tersebut.\n4. Untuk endpoint yang butuh `:id`, isi collection variable `giftId` / `userId` atau override di request.\n\n**Default admin credential** (dari seeder):\n- username: `admin`\n- password: `admin123`",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            { "key": "token", "value": "{{accessToken}}", "type": "string" }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000/api",
+            "type": "string"
+        },
+        { "key": "accessToken", "value": "", "type": "string" },
+        { "key": "giftId", "value": "", "type": "string" },
+        { "key": "userId", "value": "", "type": "string" }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Login (Admin)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const token = res?.data?.attributes?.accessToken;",
+                                    "const userId = res?.data?.id;",
+                                    "if (token) {",
+                                    "    pm.collectionVariables.set('accessToken', token);",
+                                    "    console.log('accessToken saved to collection variables');",
+                                    "}",
+                                    "if (userId) {",
+                                    "    pm.collectionVariables.set('userId', userId);",
+                                    "}",
+                                    "pm.test('status 200/201', () => pm.expect([200,201]).to.include(pm.response.code));",
+                                    "pm.test('has access token', () => pm.expect(token).to.be.a('string'));"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/login",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["login"]
+                        },
+                        "description": "Login, auto-save `accessToken` dan `userId` ke collection variables."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Gifts (Public)",
+            "item": [
+                {
+                    "name": "List gifts",
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts?page=1&limit=10&sortBy=newest&order=DESC",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" },
+                                {
+                                    "key": "sortBy",
+                                    "value": "newest",
+                                    "description": "newest | rating"
+                                },
+                                {
+                                    "key": "order",
+                                    "value": "DESC",
+                                    "description": "ASC | DESC"
+                                },
+                                {
+                                    "key": "minRating",
+                                    "value": "4",
+                                    "disabled": true,
+                                    "description": "0..5 (Rating X ke atas)"
+                                },
+                                {
+                                    "key": "inStock",
+                                    "value": "true",
+                                    "disabled": true,
+                                    "description": "true | false (Stock Tersedia)"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List gifts (Rating 4 ke atas + Stock Tersedia)",
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts?page=1&limit=10&sortBy=rating&order=DESC&minRating=4&inStock=true",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" },
+                                { "key": "sortBy", "value": "rating" },
+                                { "key": "order", "value": "DESC" },
+                                { "key": "minRating", "value": "4" },
+                                { "key": "inStock", "value": "true" }
+                            ]
+                        },
+                        "description": "Contoh filter sesuai wireframe: Rating 4 ke atas, Stock Tersedia, sort by rating DESC."
+                    }
+                },
+                {
+                    "name": "Get gift by id",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const id = res?.data?.id;",
+                                    "if (id) pm.collectionVariables.set('giftId', id);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "List gift ratings",
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}/ratings?page=1&limit=10",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}", "ratings"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Gifts (Admin)",
+            "item": [
+                {
+                    "name": "Create gift",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const id = res?.data?.id;",
+                                    "if (id) pm.collectionVariables.set('giftId', id);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Samsung Galaxy S10 - Prism Black 6/128 GB\",\n  \"description\": \"Ukuran layar: 6.1 inci, Dynamic AMOLED, RAM 6 GB, ROM 128 GB.\",\n  \"image\": \"https://example.com/images/galaxy-s10.jpg\",\n  \"stock\": 15,\n  \"pointsRequired\": 250000,\n  \"isHot\": true,\n  \"isNew\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts"]
+                        }
+                    }
+                },
+                {
+                    "name": "Replace gift (PUT)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Samsung Galaxy S10 - Prism White 6/128 GB\",\n  \"description\": \"Varian warna Prism White.\",\n  \"image\": \"https://example.com/images/galaxy-s10-white.jpg\",\n  \"stock\": 10,\n  \"pointsRequired\": 250000,\n  \"isHot\": false,\n  \"isNew\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Patch gift",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"stock\": 50,\n  \"isHot\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete gift",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Gifts (Authenticated — redeem & rating)",
+            "item": [
+                {
+                    "name": "Redeem gift",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"quantity\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}/redeem",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}", "redeem"]
+                        }
+                    }
+                },
+                {
+                    "name": "Bulk redeem (multi-item, atomic)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"items\": [\n    { \"giftId\": \"{{giftId}}\", \"quantity\": 2 }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/redeem",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "redeem"]
+                        },
+                        "description": "Redeem beberapa gift sekaligus dalam 1 transaction atomic. Kalau salah satu gagal (stock kurang atau points kurang), semua rollback."
+                    }
+                },
+                {
+                    "name": "Rate gift (hanya bisa kalau sudah redeem)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"rating\": 4.5,\n  \"review\": \"Kualitas bagus, pengiriman cepat.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/gifts/{{giftId}}/rating",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["gifts", "{{giftId}}", "rating"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Users (Admin)",
+            "item": [
+                {
+                    "name": "Create user",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const id = res?.data?.id;",
+                                    "if (id) pm.collectionVariables.set('userId', id);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\",\n  \"role\": \"user\",\n  \"points\": 500000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/users",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["users"]
+                        }
+                    }
+                },
+                {
+                    "name": "List users",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["users"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get user by id",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/{{userId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["users", "{{userId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Patch user",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"points\": 1000000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/users/{{userId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["users", "{{userId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete user",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/{{userId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["users", "{{userId}}"]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
